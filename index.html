@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Akaryakıt Takip Sistemi</title>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Supabase for cloud sync -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+</head>
+
+<body>
+
+    <!-- ===================== LOGIN PAGE ===================== -->
+    <div id="loginPage" class="page active">
+        <div class="login-bg">
+            <div class="login-particles" id="loginParticles"></div>
+            <div class="login-card">
+                <div class="login-logo">
+                    <div class="logo-icon"><i class="fas fa-gas-pump"></i></div>
+                    <h1>AKARYAKIT TAKİP</h1>
+                    <p>Yönetici Paneli</p>
+                </div>
+                <div class="login-form">
+                    <div class="input-group">
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" id="loginUser" placeholder="Kullanıcı Adı" autocomplete="off" />
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="loginPass" placeholder="Şifre" autocomplete="off" />
+                        <button class="toggle-pass" onclick="togglePass()"><i class="fas fa-eye"
+                                id="eyeIcon"></i></button>
+                    </div>
+                    <div id="loginError" class="login-error hidden">
+                        <i class="fas fa-exclamation-circle"></i> Kullanıcı adı veya şifre hatalı!
+                    </div>
+                    <button class="btn-login" onclick="doLogin()">
+                        <i class="fas fa-sign-in-alt"></i> Giriş Yap
+                    </button>
+                </div>
+                <div class="login-footer">
+                    <span>🔒 Güvenli Bağlantı</span>
+                    <span>Akaryakıt Yönetim Sistemi</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== MAIN APP ===================== -->
+    <div id="mainApp" class="page">
+
+        <!-- SIDEBAR -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <i class="fas fa-gas-pump"></i>
+                    <span>AKARYAKIT</span>
+                </div>
+                <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            </div>
+            <div class="sidebar-menu">
+                <a href="#" class="menu-item active" onclick="showSection('kayit')">
+                    <i class="fas fa-plus-circle"></i><span>Yeni Kayıt</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showSection('defterler')">
+                    <i class="fas fa-book"></i><span>Kayıt Defteri</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showSection('sorgula')">
+                    <i class="fas fa-search"></i><span>Sorgulama</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showSection('raporlar')">
+                    <i class="fas fa-chart-bar"></i><span>Aylık Raporlar</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showSection('istatistik')">
+                    <i class="fas fa-chart-pie"></i><span>İstatistikler</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showSection('indir')">
+                    <i class="fas fa-file-excel"></i><span>Excel İndir</span>
+                </a>
+            </div>
+            <div class="sidebar-bottom">
+                <div class="user-info">
+                    <i class="fas fa-user-shield"></i>
+                    <span>YÖNETİCİ</span>
+                </div>
+                <button class="btn-logout" onclick="doLogout()">
+                    <i class="fas fa-sign-out-alt"></i> Çıkış
+                </button>
+            </div>
+        </nav>
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content" id="mainContent">
+
+            <!-- TOP BAR -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                    <h2 id="pageTitle">Yeni Kayıt</h2>
+                </div>
+                <div class="topbar-right">
+                    <div class="clock-display" id="clockDisplay"></div>
+                    <div class="stat-badge">
+                        <i class="fas fa-database"></i>
+                        <span id="totalRecordsBadge">0 Kayıt</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ======= SECTION: YENİ KAYIT ======= -->
+            <section id="sec-kayit" class="content-section active">
+                <div class="section-header">
+                    <h3><i class="fas fa-plus-circle"></i> Yeni Akaryakıt Kaydı</h3>
+                    <p>Aşağıdaki formu doldurarak yeni kayıt ekleyin</p>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar-alt"></i> Tarih</label>
+                            <input type="date" id="f_tarih" />
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-building"></i> Birim/Şube</label>
+                            <input type="text" id="f_birim" placeholder="Örn: Merkez Şube, Lojistik Birimi" />
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-id-card"></i> Plaka</label>
+                            <input type="text" id="f_plaka" placeholder="Örn: 06 ABC 123"
+                                style="text-transform:uppercase" list="plakaList" oninput="checkAutofill('plaka')" />
+                            <datalist id="plakaList"></datalist>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-car"></i> Araç Marka</label>
+                            <input type="text" id="f_marka" placeholder="Örn: Ford, BMC, Land Rover" />
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-tachometer-alt"></i> KM</label>
+                            <input type="number" id="f_km" placeholder="0" min="0" />
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-fire" style="color:#f59e0b"></i> Benzin (Lt)</label>
+                            <input type="number" id="f_benzin" placeholder="0.00" min="0" step="0.01" />
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-oil-can" style="color:#10b981"></i> Motorin (Lt)</label>
+                            <input type="number" id="f_motorin" placeholder="0.00" min="0" step="0.01" />
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-user"></i> Ad Soyad</label>
+                            <input type="text" id="f_adsoyad" placeholder="Adı Soyadı" />
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-file-alt"></i> PBiK No</label>
+                            <input type="text" id="f_pbik" placeholder="PBiK Numarası" list="pbikList"
+                                style="text-transform:uppercase" oninput="checkAutofill('pbik')" />
+                            <datalist id="pbikList"></datalist>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn-primary" onclick="kayitEkle()">
+                            <i class="fas fa-save"></i> Kaydet
+                        </button>
+                        <button class="btn-secondary" onclick="formTemizle()">
+                            <i class="fas fa-eraser"></i> Temizle
+                        </button>
+                    </div>
+                    <div id="formMsg" class="form-msg hidden"></div>
+                </div>
+
+                <!-- Son 5 Kayıt -->
+                <div class="recent-card">
+                    <h4><i class="fas fa-history"></i> Son Kayıtlar</h4>
+                    <div class="table-wrapper">
+                        <table id="recentTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Birim</th>
+                                    <th>Plaka</th>
+                                    <th>Marka</th>
+                                    <th>KM</th>
+                                    <th>Benzin (Lt)</th>
+                                    <th>Motorin (Lt)</th>
+                                    <th>Ad Soyad</th>
+                                    <th>PBiK</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======= SECTION: KAYIT DEFTERİ ======= -->
+            <section id="sec-defterler" class="content-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-book"></i> Kayıt Defteri</h3>
+                    <p>Tüm akaryakıt kayıtları</p>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>Tarih Başlangıç</label>
+                        <input type="date" id="filterStart" onchange="renderDefter()" />
+                    </div>
+                    <div class="filter-group">
+                        <label>Tarih Bitiş</label>
+                        <input type="date" id="filterEnd" onchange="renderDefter()" />
+                    </div>
+                    <div class="filter-group">
+                        <label>Birim Ara</label>
+                        <input type="text" id="filterBirim" onkeyup="renderDefter()" placeholder="Birim adı..." />
+                    </div>
+                    <div class="filter-group">
+                        <label>Yakıt Türü</label>
+                        <select id="filterYakit" onchange="renderDefter()">
+                            <option value="">Tümü</option>
+                            <option value="benzin">Benzin</option>
+                            <option value="motorin">Motorin</option>
+                        </select>
+                    </div>
+                    <button class="btn-sm" onclick="clearFilters()"><i class="fas fa-times"></i> Filtre Temizle</button>
+                </div>
+
+                <div class="totals-bar" id="totalsBar">
+                    <div class="total-chip benzin-chip">
+                        <i class="fas fa-fire"></i>
+                        <span>Benzin Toplam: <strong id="totalBenzin">0</strong> Lt</span>
+                    </div>
+                    <div class="total-chip motorin-chip">
+                        <i class="fas fa-oil-can"></i>
+                        <span>Motorin Toplam: <strong id="totalMotorin">0</strong> Lt</span>
+                    </div>
+                    <div class="total-chip genel-chip">
+                        <i class="fas fa-database"></i>
+                        <span>Kayıt Sayısı: <strong id="totalCount">0</strong></span>
+                    </div>
+                </div>
+
+                <div class="table-wrapper" style="margin-top:16px">
+                    <table id="defterTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Tarih</th>
+                                <th>Birim</th>
+                                <th>Plaka</th>
+                                <th>Araç Marka</th>
+                                <th>KM</th>
+                                <th>Benzin (Lt)</th>
+                                <th>Motorin (Lt)</th>
+                                <th>Ad Soyad</th>
+                                <th>PBiK</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="defterBody"></tbody>
+                    </table>
+                    <div id="noRecord" class="no-record hidden">
+                        <i class="fas fa-inbox"></i>
+                        <p>Kayıt bulunamadı</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======= SECTION: SORGULAMA ======= -->
+            <section id="sec-sorgula" class="content-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-search"></i> Sorgulama</h3>
+                    <p>Plaka veya birlik bazlı sorgulama yapın</p>
+                </div>
+
+                <div class="query-tabs">
+                    <button class="qtab active" onclick="switchQueryTab('plaka', this)">
+                        <i class="fas fa-id-card"></i> Plaka Sorgulama
+                    </button>
+                    <button class="qtab" onclick="switchQueryTab('birlik', this)">
+                        <i class="fas fa-building"></i> Birim Sorgulama
+                    </button>
+                </div>
+
+                <!-- Plaka Sorgulama -->
+                <div id="queryPlaka" class="query-panel">
+                    <div class="search-box">
+                        <input type="text" id="qPlaka" placeholder="Plaka girin (örn: 06 ABC 123)"
+                            style="text-transform:uppercase" />
+                        <button class="btn-search" onclick="sorgulaPlaka()">
+                            <i class="fas fa-search"></i> Ara
+                        </button>
+                    </div>
+                    <div id="plakaResult"></div>
+                </div>
+
+                <!-- Birim Sorgulama -->
+                <div id="queryBirim" class="query-panel hidden">
+                    <div class="search-box">
+                        <input type="text" id="qBirim" placeholder="Birim adı girin" />
+                        <button class="btn-search" onclick="sorgulaBirim()">
+                            <i class="fas fa-search"></i> Ara
+                        </button>
+                    </div>
+                    <div id="birlikResult"></div>
+                </div>
+            </section>
+
+            <!-- ======= SECTION: AYLIK RAPORLAR ======= -->
+            <section id="sec-raporlar" class="content-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-chart-bar"></i> Aylık Raporlar</h3>
+                    <p>Birim ve ay bazlı akaryakıt dağılımı</p>
+                </div>
+
+                <div class="report-controls">
+                    <div class="filter-group">
+                        <label>Yıl</label>
+                        <select id="raporYil" onchange="renderRaporlar()"></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Ay</label>
+                        <select id="raporAy" onchange="renderRaporlar()">
+                            <option value="">Tümü</option>
+                            <option value="1">Ocak</option>
+                            <option value="2">Şubat</option>
+                            <option value="3">Mart</option>
+                            <option value="4">Nisan</option>
+                            <option value="5">Mayıs</option>
+                            <option value="6">Haziran</option>
+                            <option value="7">Temmuz</option>
+                            <option value="8">Ağustos</option>
+                            <option value="9">Eylül</option>
+                            <option value="10">Ekim</option>
+                            <option value="11">Kasım</option>
+                            <option value="12">Aralık</option>
+                        </select>
+                    </div>
+                    <button class="btn-sm" onclick="exportRaporExcel()">
+                        <i class="fas fa-file-excel"></i> Excel'e Aktar
+                    </button>
+                </div>
+
+                <div id="raporCards" class="rapor-cards"></div>
+                <div id="raporTableWrap">
+                    <div class="table-wrapper">
+                        <table class="data-table" id="raporTable">
+                            <thead>
+                                <tr>
+                                    <th>Birim</th>
+                                    <th>Benzin (Lt)</th>
+                                    <th>Motorin (Lt)</th>
+                                    <th>Toplam (Lt)</th>
+                                    <th>Kayıt Sayısı</th>
+                                </tr>
+                            </thead>
+                            <tbody id="raporBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======= SECTION: İSTATİSTİKLER ======= -->
+            <section id="sec-istatistik" class="content-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-chart-pie"></i> İstatistikler</h3>
+                    <p>Görsel grafiklerle akaryakıt dağılımı</p>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h4>Aylık Tüketim (Lt)</h4>
+                        <canvas id="chartAylik"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h4>Birim Bazlı Dağılım</h4>
+                        <canvas id="chartBirim"></canvas>
+                    </div>
+                    <div class="chart-card" style="grid-column:span 2">
+                        <h4>Benzin / Motorin Karşılaştırma</h4>
+                        <canvas id="chartKarsilastirma"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======= SECTION: EXCEL İNDİR ======= -->
+            <section id="sec-indir" class="content-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-file-excel"></i> Excel İndir</h3>
+                    <p>Verileri farklı formatlarda Excel olarak indirin</p>
+                </div>
+
+                <div class="download-grid">
+                    <div class="download-card" onclick="excelTumKayitlar()">
+                        <div class="dl-icon"><i class="fas fa-table"></i></div>
+                        <h4>Tüm Kayıtlar</h4>
+                        <p>Bütün kayıtları tek sayfada indirin</p>
+                        <button class="btn-dl"><i class="fas fa-download"></i> İndir</button>
+                    </div>
+
+                    <div class="download-card">
+                        <div class="dl-icon"><i class="fas fa-calendar-alt"></i></div>
+                        <h4>Aya Göre</h4>
+                        <p>Belirli bir ay seçerek indirin</p>
+                        <div style="display:flex;gap:8px;margin:8px 0">
+                            <select id="dlYil" class="dl-select"></select>
+                            <select id="dlAy" class="dl-select">
+                                <option value="1">Ocak</option>
+                                <option value="2">Şubat</option>
+                                <option value="3">Mart</option>
+                                <option value="4">Nisan</option>
+                                <option value="5">Mayıs</option>
+                                <option value="6">Haziran</option>
+                                <option value="7">Temmuz</option>
+                                <option value="8">Ağustos</option>
+                                <option value="9">Eylül</option>
+                                <option value="10">Ekim</option>
+                                <option value="11">Kasım</option>
+                                <option value="12">Aralık</option>
+                            </select>
+                        </div>
+                        <button class="btn-dl" onclick="excelAyaBore()"><i class="fas fa-download"></i> İndir</button>
+                    </div>
+
+                    <div class="download-card">
+                        <div class="dl-icon" style="background:linear-gradient(135deg,#10b981,#059669)"><i
+                                class="fas fa-building"></i></div>
+                        <h4>Birliğe Göre</h4>
+                        <p>Her birlik ayrı sayfada raporlanır</p>
+                        <button class="btn-dl" style="background:linear-gradient(135deg,#10b981,#059669)"
+                            onclick="excelBirimBazli()">
+                            <i class="fas fa-download"></i> İndir
+                        </button>
+                    </div>
+
+                    <div class="download-card">
+                        <div class="dl-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i
+                                class="fas fa-chart-bar"></i></div>
+                        <h4>Özet Rapor</h4>
+                        <p>Birim ve ay bazlı özet tablo</p>
+                        <button class="btn-dl" style="background:linear-gradient(135deg,#f59e0b,#d97706)"
+                            onclick="excelOzet()">
+                            <i class="fas fa-download"></i> İndir
+                        </button>
+                    </div>
+
+                    <div class="download-card">
+                        <div class="dl-icon" style="background:linear-gradient(135deg,#6366f1,#4338ca)"><i
+                                class="fas fa-file-export"></i></div>
+                        <h4>Veri Yedekle</h4>
+                        <p>Tüm verileri JSON formatında yedekleyin</p>
+                        <button class="btn-dl" style="background:linear-gradient(135deg,#6366f1,#4338ca)"
+                            onclick="DB.exportBackup()">
+                            <i class="fas fa-save"></i> Yedekle (JSON)
+                        </button>
+                    </div>
+
+                    <div class="download-card">
+                        <div class="dl-icon" style="background:linear-gradient(135deg,#ec4899,#be185d)"><i
+                                class="fas fa-file-import"></i></div>
+                        <h4>Geri Yükle</h4>
+                        <p>Yedek aldığınız JSON dosyasını yükleyin</p>
+                        <input type="file" id="importFile" accept=".json" style="display:none"
+                            onchange="handleImport(this)" />
+                        <button class="btn-dl" style="background:linear-gradient(135deg,#ec4899,#be185d)"
+                            onclick="document.getElementById('importFile').click()">
+                            <i class="fas fa-upload"></i> Yükle (JSON)
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- MODAL: Edit -->
+            <div id="editModal" class="modal-overlay hidden">
+                <div class="modal-card">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-edit"></i> Kaydı Düzenle</h3>
+                        <button onclick="closeModal()"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="form-grid" style="padding:16px">
+                        <div class="form-group"><label>Tarih</label><input type="date" id="e_tarih" /></div>
+                        <div class="form-group"><label>Birim</label><input type="text" id="e_birim" /></div>
+                        <div class="form-group"><label>Plaka</label><input type="text" id="e_plaka"
+                                style="text-transform:uppercase" /></div>
+                        <div class="form-group"><label>Araç Marka</label><input type="text" id="e_marka" /></div>
+                        <div class="form-group"><label>KM</label><input type="number" id="e_km" /></div>
+                        <div class="form-group"><label>Benzin (Lt)</label><input type="number" id="e_benzin"
+                                step="0.01" />
+                        </div>
+                        <div class="form-group"><label>Motorin (Lt)</label><input type="number" id="e_motorin"
+                                step="0.01" />
+                        </div>
+                        <div class="form-group"><label>Ad Soyad</label><input type="text" id="e_adsoyad" /></div>
+                        <div class="form-group"><label>PBiK</label><input type="text" id="e_pbik" /></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-primary" onclick="kayitGuncelle()"><i class="fas fa-save"></i>
+                            Güncelle</button>
+                        <button class="btn-secondary" onclick="closeModal()"><i class="fas fa-times"></i> İptal</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOAST -->
+            <div id="toast" class="toast hidden"></div>
+
+            <script src="db.js"></script>
+            <script src="app.js"></script>
+</body>
+
+</html>
