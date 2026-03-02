@@ -749,3 +749,7 @@ document.addEventListener('DOMContentLoaded', function () {
         nameField.addEventListener('blur', autofillPbikByName);
     }
 });
+// Plaka girişinde otomatik büyük harf ve gerekirse prefix zorlamak için:
+function forcePrefix(el) {
+    el.value = el.value.toUpperCase();
+}
