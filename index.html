@@ -6,22 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Akaryakıt Takip Sistemi</title>
     <link rel="stylesheet" href="style.css" />
-    <!-- Supabase for cloud sync -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- SheetJS for Excel export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Chart.js for graphs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet" />
 </head>
 
 <body>
 
-    <!-- ===================== LOGIN PAGE ===================== -->
     <div id="loginPage" class="page active">
         <div class="login-bg">
             <div class="login-particles" id="loginParticles"></div>
@@ -57,10 +51,8 @@
         </div>
     </div>
 
-    <!-- ===================== MAIN APP ===================== -->
     <div id="mainApp" class="page">
 
-        <!-- SIDEBAR -->
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-logo">
@@ -101,10 +93,8 @@
         </nav>
         <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-        <!-- MAIN CONTENT -->
         <div class="main-content" id="mainContent">
 
-            <!-- TOP BAR -->
             <header class="topbar">
                 <div class="topbar-left">
                     <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
@@ -119,7 +109,6 @@
                 </div>
             </header>
 
-            <!-- ======= SECTION: YENİ KAYIT ======= -->
             <section id="sec-kayit" class="content-section active">
                 <div class="section-header">
                     <h3><i class="fas fa-plus-circle"></i> Yeni Akaryakıt Kaydı</h3>
@@ -138,7 +127,8 @@
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-id-card"></i> Plaka</label>
-                            <input type="text" id="f_plaka" placeholder="Örn: 06 ABC 123" style="text-transform:uppercase" />
+                            <input type="text" id="f_plaka" placeholder="Örn: 06 ABC 123" style="text-transform:uppercase" oninput="checkAutofill('plaka')" list="plakaList" />
+                            <datalist id="plakaList"></datalist>
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-car"></i> Araç Marka</label>
@@ -158,8 +148,8 @@
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-user"></i> Ad Soyad</label>
-                            <input type="text" id="f_adsoyad" placeholder="Adı Soyadı" oninput="autofillPbikByName()" list="adSoyadList" />
-                        <datalist id="adSoyadList"></datalist>
+                            <input type="text" id="f_adsoyad" placeholder="Adı Soyadı" onblur="autofillPbikByName()" list="adSoyadList" />
+                            <datalist id="adSoyadList"></datalist>
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-file-alt"></i> PBiK No</label>
@@ -180,7 +170,6 @@
                     <div id="formMsg" class="form-msg hidden"></div>
                 </div>
 
-                <!-- Son 5 Kayıt -->
                 <div class="recent-card">
                     <h4><i class="fas fa-history"></i> Son Kayıtlar</h4>
                     <div class="table-wrapper">
@@ -204,7 +193,6 @@
                 </div>
             </section>
 
-            <!-- ======= SECTION: KAYIT DEFTERİ ======= -->
             <section id="sec-defterler" class="content-section">
                 <div class="section-header">
                     <h3><i class="fas fa-book"></i> Kayıt Defteri</h3>
@@ -276,7 +264,6 @@
                 </div>
             </section>
 
-            <!-- ======= SECTION: SORGULAMA ======= -->
             <section id="sec-sorgula" class="content-section">
                 <div class="section-header">
                     <h3><i class="fas fa-search"></i> Sorgulama</h3>
@@ -292,7 +279,6 @@
                     </button>
                 </div>
 
-                <!-- Plaka Sorgulama -->
                 <div id="queryPlaka" class="query-panel">
                     <div class="search-box">
                         <input type="text" id="qPlaka" placeholder="Plaka girin (örn: 06 ABC 123)"
@@ -304,7 +290,6 @@
                     <div id="plakaResult"></div>
                 </div>
 
-                <!-- Birim Sorgulama -->
                 <div id="queryBirim" class="query-panel hidden">
                     <div class="search-box">
                         <input type="text" id="qBirim" placeholder="Birim adı girin" />
@@ -316,7 +301,6 @@
                 </div>
             </section>
 
-            <!-- ======= SECTION: AYLIK RAPORLAR ======= -->
             <section id="sec-raporlar" class="content-section">
                 <div class="section-header">
                     <h3><i class="fas fa-chart-bar"></i> Aylık Raporlar</h3>
@@ -370,7 +354,6 @@
                 </div>
             </section>
 
-            <!-- ======= SECTION: İSTATİSTİKLER ======= -->
             <section id="sec-istatistik" class="content-section">
                 <div class="section-header">
                     <h3><i class="fas fa-chart-pie"></i> İstatistikler</h3>
@@ -392,7 +375,6 @@
                 </div>
             </section>
 
-            <!-- ======= SECTION: EXCEL İNDİR ======= -->
             <section id="sec-indir" class="content-section">
                 <div class="section-header">
                     <h3><i class="fas fa-file-excel"></i> Excel İndir</h3>
@@ -480,7 +462,6 @@
             </section>
 
 
-            <!-- MODAL: Edit -->
             <div id="editModal" class="modal-overlay hidden">
                 <div class="modal-card">
                     <div class="modal-header">
@@ -511,11 +492,12 @@
                 </div>
             </div>
 
-            <!-- TOAST -->
             <div id="toast" class="toast hidden"></div>
 
             <script src="db.js"></script>
             <script src="app.js"></script>
+        </div>
+    </div>
 </body>
 
 </html>
