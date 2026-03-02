@@ -127,7 +127,7 @@
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-id-card"></i> Plaka</label>
-                            <input type="text" id="f_plaka" placeholder="Örn: 06 ABC 123" style="text-transform:uppercase" oninput="checkAutofill('plaka')" list="plakaList" />
+                            <input type="text" id="f_plaka" value="73 JAC " oninput="forcePrefix(this); checkAutofill('plaka')" list="plakaList" style="text-transform:uppercase" />
                             <datalist id="plakaList"></datalist>
                         </div>
                         <div class="form-group">
@@ -281,7 +281,7 @@
 
                 <div id="queryPlaka" class="query-panel">
                     <div class="search-box">
-                        <input type="text" id="qPlaka" placeholder="Plaka girin (örn: 06 ABC 123)"
+                        <input type="text" id="qPlaka" placeholder="Plaka girin" value="73 JAC " oninput="forcePrefix(this)"
                             style="text-transform:uppercase" />
                         <button class="btn-search" onclick="sorgulaPlaka()">
                             <i class="fas fa-search"></i> Ara
@@ -471,8 +471,7 @@
                     <div class="form-grid" style="padding:16px">
                         <div class="form-group"><label>Tarih</label><input type="date" id="e_tarih" /></div>
                         <div class="form-group"><label>Birim</label><input type="text" id="e_birim" /></div>
-                        <div class="form-group"><label>Plaka</label><input type="text" id="e_plaka"
-                                style="text-transform:uppercase" /></div>
+                        <div class="form-group"><label>Plaka</label><input type="text" id="e_plaka" oninput="forcePrefix(this)" style="text-transform:uppercase" /></div>
                         <div class="form-group"><label>Araç Marka</label><input type="text" id="e_marka" /></div>
                         <div class="form-group"><label>KM</label><input type="number" id="e_km" /></div>
                         <div class="form-group"><label>Benzin (Lt)</label><input type="number" id="e_benzin"
