@@ -1,6 +1,6 @@
 /**
  * app.js - Uygulama Mantığı ve UI Kontrolü
- * Akaryakıt Takip Sistemi
+ * Akaryakıt Takip Sistemi - Güncellenmiş Tam Sürüm
  */
 
 // Global Değişkenler
@@ -71,7 +71,6 @@ function togglePass() {
 // ========================
 async function showSection(sectionId) {
     console.log("Seksiyon değişiyor: ", sectionId);
-    // Menü aktiflik durumunu güncelle
     document.querySelectorAll('.menu-item').forEach(function (item) {
         item.classList.remove('active');
         var clickAttr = item.getAttribute('onclick') || '';
@@ -80,12 +79,10 @@ async function showSection(sectionId) {
         }
     });
 
-    // Bölümleri göster/gizle
     document.querySelectorAll('.content-section').forEach(function (sec) { sec.classList.remove('active'); });
     var targetSec = document.getElementById('sec-' + sectionId);
     if (targetSec) targetSec.classList.add('active');
 
-    // Sayfa başlığını güncelle
     var titles = {
         'kayit': 'Yeni Kayıt',
         'defterler': 'Kayıt Defteri',
@@ -96,7 +93,6 @@ async function showSection(sectionId) {
     };
     document.getElementById('pageTitle').innerText = titles[sectionId] || 'Panel';
 
-    // Bölüme özel yüklemeler
     try {
         if (sectionId === 'defterler') await renderDefter();
         if (sectionId === 'raporlar') await renderRaporlar();
@@ -106,7 +102,6 @@ async function showSection(sectionId) {
         console.error("Seksiyon yükleme hatası:", e);
     }
 
-    // Mobilde sidebarı kapat
     if (window.innerWidth <= 768) {
         var sidebar = document.getElementById('sidebar');
         if (sidebar) sidebar.classList.remove('mobile-open');
@@ -125,7 +120,6 @@ function toggleSidebar() {
         sidebar.classList.toggle('collapsed');
         sidebar.classList.remove('mobile-open');
 
-        // PC'de sidebar kapalıyken içeriği tam genişlik yap
         if (sidebar.classList.contains('collapsed')) {
             mainContent.style.marginLeft = '0';
         } else {
@@ -196,7 +190,10 @@ async function renderRecent() {
     if (typeof DB === 'undefined') return;
     try {
         var all = await DB.getAll();
-        var kayitlar = (all || []).slice(0, 5);
+        // En yeni kayıt en üstte olması için sıralıyoruz
+        var sortedAll = (all || []).sort((a, b) => new Date(b.tarih) - new Date(a.tarih));
+        var kayitlar = sortedAll.slice(0, 5);
+        
         var tbody = document.getElementById('recentBody');
         if (!tbody) return;
         tbody.innerHTML = kayitlar.map(function (k) {
@@ -224,8 +221,10 @@ async function renderDefter() {
     if (typeof DB === 'undefined') return;
     try {
         var kayitlar = await DB.getAll();
+        // Tarihe göre azalan sıralama (En yeni en üstte)
+        kayitlar.sort((a, b) => new Date(b.tarih) - new Date(a.tarih));
 
-        // Filtreleme
+        // Filtreleme işlemleri
         var fStart = document.getElementById('filterStart').value;
         var fEnd = document.getElementById('filterEnd').value;
         var fBirim = document.getElementById('filterBirim').value.toLowerCase();
@@ -266,7 +265,6 @@ async function renderDefter() {
             }).join('');
         }
 
-        // Toplamları güncelle
         var stats = DB.summary(kayitlar);
         document.getElementById('totalBenzin').innerText = stats.benzin.toFixed(2);
         document.getElementById('totalMotorin').innerText = stats.motorin.toFixed(2);
@@ -291,7 +289,7 @@ function switchQueryTab(tab, el) {
     document.querySelectorAll('.qtab').forEach(function (t) { t.classList.remove('active'); });
     el.classList.add('active');
     document.getElementById('queryPlaka').classList.toggle('hidden', tab !== 'plaka');
-    document.getElementById('queryBirim').classList.toggle('hidden', tab !== 'birlik'); // index.html ile uyumlu olsun
+    document.getElementById('queryBirim').classList.toggle('hidden', tab !== 'birlik');
 }
 
 async function sorgulaPlaka() {
@@ -331,7 +329,7 @@ async function sorgulaBirim() {
     var birim = document.getElementById('qBirim').value;
     if (!birim) return;
     var sonuclar = await DB.filterByBirim(birim);
-    var resultDiv = document.getElementById('birlikResult'); // index.html ile uyumlu olsun
+    var resultDiv = document.getElementById('birlikResult');
 
     if (sonuclar.length === 0) {
         resultDiv.innerHTML = '<p class="no-record">Birim bulunamadı.</p>';
@@ -405,12 +403,10 @@ async function renderIstatistikler() {
     var ayBazli = DB.groupByMonth(kayitlar).slice(-6);
     var birimBazli = DB.groupByBirim(kayitlar).slice(0, 5);
 
-    // Temizle
     if (charts.aylik) charts.aylik.destroy();
     if (charts.birim) charts.birim.destroy();
     if (charts.karsilastirma) charts.karsilastirma.destroy();
 
-    // Aylık Tüketim
     var ctxAylik = document.getElementById('chartAylik');
     if (ctxAylik) {
         charts.aylik = new Chart(ctxAylik, {
@@ -426,7 +422,6 @@ async function renderIstatistikler() {
         });
     }
 
-    // Birim Bazlı
     var ctxBirim = document.getElementById('chartBirim');
     if (ctxBirim) {
         charts.birim = new Chart(ctxBirim, {
@@ -443,7 +438,6 @@ async function renderIstatistikler() {
         });
     }
 
-    // Karşılaştırma (Pie)
     var ctxKars = document.getElementById('chartKarsilastirma');
     if (ctxKars) {
         charts.karsilastirma = new Chart(ctxKars, {
@@ -647,6 +641,9 @@ async function updateDatalists() {
     } catch (e) { console.error("Datalist güncelleme hatası:", e); }
 }
 
+/**
+ * Plaka veya PBiK yazıldığında Araç bilgilerini otomatik getiren fonksiyon
+ */
 async function checkAutofill(type) {
     if (typeof DB === 'undefined') return;
     var inputId = type === 'plaka' ? 'f_plaka' : 'f_pbik';
@@ -655,7 +652,8 @@ async function checkAutofill(type) {
 
     try {
         var kayitlar = await DB.getAll();
-        var match = kayitlar.find(function (k) {
+        // En güncel kaydı bulmak için diziyi ters çevirip arıyoruz
+        var match = [...kayitlar].reverse().find(function (k) {
             var target = (type === 'plaka' ? k.plaka : k.pbik);
             return target && target.toUpperCase().includes(val);
         });
@@ -687,6 +685,30 @@ async function checkAutofill(type) {
     } catch (e) { console.error("Autofill hatası:", e); }
 }
 
+/**
+ * Ad Soyad yazıldığında PBiK numarasını otomatik getiren fonksiyon
+ */
+async function autofillPbikByName() {
+    if (typeof DB === 'undefined') return;
+    const nameInput = document.getElementById('f_adsoyad').value.trim().toLowerCase();
+    const pbikInput = document.getElementById('f_pbik');
+
+    if (nameInput.length < 3) return;
+
+    try {
+        const kayitlar = await DB.getAll();
+        const match = [...kayitlar].reverse().find(item => 
+            item.adsoyad && item.adsoyad.toLowerCase() === nameInput
+        );
+
+        if (match && match.pbik) {
+            pbikInput.value = match.pbik;
+            pbikInput.style.backgroundColor = "#10b98133"; 
+            setTimeout(() => pbikInput.style.backgroundColor = "", 800);
+        }
+    } catch (e) { console.error("Name autofill hatası:", e); }
+}
+
 async function initApp() {
     console.log("initApp() başlatılıyor...");
     if (typeof initSupabase === 'function') {
@@ -695,14 +717,13 @@ async function initApp() {
         console.error("initSupabase bulunamadı!");
     }
 
-    formTemizle(); // Tarihi set eder
+    formTemizle(); 
 
     try {
         await updateBadges();
         await renderRecent();
         await updateDatalists();
 
-        // Yıl dropdownlarını doldur
         var years = await DB.getYears();
         ['raporYil', 'dlYil'].forEach(function (id) {
             var sel = document.getElementById(id);
@@ -724,5 +745,11 @@ document.addEventListener('DOMContentLoaded', function () {
         loginPass.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') doLogin();
         });
+    }
+
+    // Ad Soyad inputuna event listener ekle
+    var nameField = document.getElementById('f_adsoyad');
+    if (nameField) {
+        nameField.addEventListener('blur', autofillPbikByName);
     }
 });
