@@ -158,7 +158,8 @@
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-user"></i> Ad Soyad</label>
-                            <input type="text" id="f_adsoyad" placeholder="Adı Soyadı" />
+                            <input type="text" id="f_adsoyad" placeholder="Adı Soyadı" oninput="autofillPbikByName()" list="adSoyadList" />
+                        <datalist id="adSoyadList"></datalist>
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-file-alt"></i> PBiK No</label>
