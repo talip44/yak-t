@@ -190,7 +190,6 @@ async function renderRecent() {
     if (typeof DB === 'undefined') return;
     try {
         var all = await DB.getAll();
-        // En yeni kayıt en üstte olması için sıralıyoruz
         var sortedAll = (all || []).sort((a, b) => new Date(b.tarih) - new Date(a.tarih));
         var kayitlar = sortedAll.slice(0, 5);
         
@@ -221,10 +220,8 @@ async function renderDefter() {
     if (typeof DB === 'undefined') return;
     try {
         var kayitlar = await DB.getAll();
-        // Tarihe göre azalan sıralama (En yeni en üstte)
         kayitlar.sort((a, b) => new Date(b.tarih) - new Date(a.tarih));
 
-        // Filtreleme işlemleri
         var fStart = document.getElementById('filterStart').value;
         var fEnd = document.getElementById('filterEnd').value;
         var fBirim = document.getElementById('filterBirim').value.toLowerCase();
@@ -652,7 +649,6 @@ async function checkAutofill(type) {
 
     try {
         var kayitlar = await DB.getAll();
-        // En güncel kaydı bulmak için diziyi ters çevirip arıyoruz
         var match = [...kayitlar].reverse().find(function (k) {
             var target = (type === 'plaka' ? k.plaka : k.pbik);
             return target && target.toUpperCase().includes(val);
