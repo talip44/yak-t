@@ -641,69 +641,10 @@ async function updateDatalists() {
 /**
  * Plaka veya PBiK yazıldığında Araç bilgilerini otomatik getiren fonksiyon
  */
-async function checkAutofill(type) {
-    if (typeof DB === 'undefined') return;
-    var inputId = type === 'plaka' ? 'f_plaka' : 'f_pbik';
-    var val = document.getElementById(inputId).value.trim().toUpperCase();
-    if (val.length < 2) return;
-
-    try {
-        var kayitlar = await DB.getAll();
-        var match = [...kayitlar].reverse().find(function (k) {
-            var target = (type === 'plaka' ? k.plaka : k.pbik);
-            return target && target.toUpperCase().includes(val);
-        });
-
-        if (match) {
-            if (match.birim) document.getElementById('f_birim').value = match.birim;
-            if (match.marka) document.getElementById('f_marka').value = match.marka;
-            if (match.adsoyad) document.getElementById('f_adsoyad').value = match.adsoyad;
-
-            var otherId = type === 'plaka' ? 'f_pbik' : 'f_plaka';
-            var otherVal = type === 'plaka' ? match.pbik : match.plaka;
-            if (otherVal) document.getElementById(otherId).value = otherVal;
-
-            if (match.km) {
-                var kmInput = document.getElementById('f_km');
-                if (kmInput) kmInput.placeholder = "Son KM: " + match.km;
-            }
-
-            ['f_birim', 'f_marka', 'f_adsoyad', (type === 'plaka' ? 'f_pbik' : 'f_plaka')].forEach(function (id) {
-                var el = document.getElementById(id);
-                if (el) {
-                    el.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
-                    el.style.borderColor = 'var(--green)';
-                    setTimeout(function () { el.style.backgroundColor = ''; el.style.borderColor = ''; }, 2000);
-                }
-            });
-            showToast('Araç bilgileri otomatik dolduruldu.', 'success');
-        }
-    } catch (e) { console.error("Autofill hatası:", e); }
-}
 
 /**
  * Ad Soyad yazıldığında PBiK numarasını otomatik getiren fonksiyon
  */
-async function autofillPbikByName() {
-    if (typeof DB === 'undefined') return;
-    const nameInput = document.getElementById('f_adsoyad').value.trim().toLowerCase();
-    const pbikInput = document.getElementById('f_pbik');
-
-    if (nameInput.length < 3) return;
-
-    try {
-        const kayitlar = await DB.getAll();
-        const match = [...kayitlar].reverse().find(item => 
-            item.adsoyad && item.adsoyad.toLowerCase() === nameInput
-        );
-
-        if (match && match.pbik) {
-            pbikInput.value = match.pbik;
-            pbikInput.style.backgroundColor = "#10b98133"; 
-            setTimeout(() => pbikInput.style.backgroundColor = "", 800);
-        }
-    } catch (e) { console.error("Name autofill hatası:", e); }
-}
 
 async function initApp() {
     console.log("initApp() başlatılıyor...");
